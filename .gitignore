@@ -1,0 +1,45 @@
+# .gitignore
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django stuff
+*.log
+db.sqlite3
+/staticfiles/
+/media/
+
+# Virtual environment
+venv/
+env/
+*.env
+.env.* # Exclude all .env files, including .env.dev
+!.env.example # Keep example env files if added later
+
+# Database folder from docker-compose volume (if mapped locally)
+postgres_data/
+
+# Frontend node modules
+frontend/node_modules/
+frontend/build/
+frontend/.pnp.*
+frontend/.yarn/cache
+frontend/.yarn/unplugged
+frontend/.yarn/build-state.yml
+frontend/.yarn/install-state.gz
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE settings files (example for VSCode)
+.vscode/

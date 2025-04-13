@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env.dev
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    command: npm start
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Prevent local node_modules from overwriting container's
+    ports:
+      - "3000:3000"
+    stdin_open: true # For Create React App interactive mode
+    tty: true
+    environment:
+      - CHOKIDAR_USEPOLLING=true # Necessary for hot reloading in Docker on some systems
+      - REACT_APP_API_URL=http://localhost:8000/api/ # URL for backend API
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  db:
+    image: postgres:15 # Specify PostgreSQL version
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=cfdi_saas_dev
+      - POSTGRES_USER=cfdi_saas_user
+      - POSTGRES_PASSWORD=supersecretdevpassword # Use a more secure password in production
+    ports:
+      - "5432:5432" # Expose default PostgreSQL port (optional, for direct access)
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
