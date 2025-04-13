@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     # Third-party apps
     'rest_framework',
     # Local apps (add 'users', 'invoices' etc. here later)
-    # 'users.apps.UsersConfig',
+    'users.apps.UsersConfig',
     # 'invoices.apps.InvoicesConfig',
 ]
 
@@ -145,6 +145,10 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Custom User Model
+# https://docs.djangoproject.com/en/4.2/topics/auth/customizing/#substituting-a-custom-user-model
+AUTH_USER_MODEL = 'users.User'
 
 # Django REST Framework settings (add more config later)
 REST_FRAMEWORK = {
