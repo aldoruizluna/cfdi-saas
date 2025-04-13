@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 # Load environment variables from .env file
 # This is primarily for local development convenience.
@@ -77,17 +78,56 @@ TEMPLATES = [
 WSGI_APPLICATION = 'cfdi_saas.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-# Uses dj-database-url to parse the DATABASE_URL environment variable
+# --- Database Configuration ---
+DATABASE_URL = os.getenv('DATABASE_URL')
 
-DATABASE_URL = os.getenv('DATABASE_URL', f'postgres://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@{os.getenv("POSTGRES_HOST")}:{os.getenv("POSTGRES_PORT", 5432)}/{os.getenv("POSTGRES_DB")}')
+# Check if DATABASE_URL looks incomplete (e.g., missing user:pass)
+db_url_incomplete = not DATABASE_URL or '://@' in DATABASE_URL or ': خالی@' in DATABASE_URL # Handle potential empty string for password if env var is just empty
 
-DATABASES = {
-    # Use dj_database_url to parse DATABASE_URL
-    # Ensure DATABASE_URL is set in your environment (.env.dev or system env)
-    'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=os.getenv('DB_SSL_REQUIRE', 'False') == 'True')
-}
+if db_url_incomplete:
+    print("INFO: DATABASE_URL env var is missing, empty, or incomplete. Attempting to construct from components.")
+    db_user = os.getenv('POSTGRES_USER')
+    db_password = os.getenv('POSTGRES_PASSWORD')
+    db_host = os.getenv('POSTGRES_HOST')
+    db_port = os.getenv('POSTGRES_PORT', '5432')
+    db_name = os.getenv('POSTGRES_DB')
+
+    if all([db_user, db_password is not None, db_host, db_name]): # Check password is not None, allowing empty string
+        DATABASE_URL = f"postgres://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+        print(f"INFO: Constructed DATABASE_URL: postgres://{db_user}:******@{db_host}:{db_port}/{db_name}")
+    else:
+        missing_vars = [
+            var for var, val in {
+                'POSTGRES_USER': db_user,
+                'POSTGRES_PASSWORD': db_password,
+                'POSTGRES_HOST': db_host,
+                'POSTGRES_DB': db_name
+            }.items() if not val and val is not '' # Check if None or truly empty, allow empty password
+        ]
+        raise ImproperlyConfigured(
+            "Database configuration error: DATABASE_URL is invalid/missing, and could not "
+            f"construct from components. Missing component(s): {', '.join(missing_vars)}"
+        )
+
+# Now, configure DATABASES using the determined DATABASE_URL
+try:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=os.getenv('DB_SSL_REQUIRE', 'False') == 'True'
+        )
+    }
+    # Quick validation check
+    if not DATABASES['default'].get('NAME'):
+        raise ValueError("Database NAME is missing after configuration.")
+except (ValueError, ImproperlyConfigured) as e:
+    raise ImproperlyConfigured(
+        f"Final database configuration failed using URL: {DATABASE_URL}. Error: {e}"
+    )
+
+print(f"INFO: Database configured for host '{DATABASES['default'].get('HOST')}' and database '{DATABASES['default'].get('NAME')}'")
+# --- End Database Configuration ---
 
 
 # Password validation

@@ -13,7 +13,6 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=cfdi_saas.settings.local
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - SECRET_KEY=${SECRET_KEY}
     depends_on:
       - db
