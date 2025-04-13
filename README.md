@@ -38,6 +38,97 @@ Refer to the [Full Software Specification](./docs/SPECIFICATION.md) (assuming yo
 
 Refer to the `README.md` file within each directory for specific details.
 
+## Environment Management
+
+### 1. Local Development (Docker Compose)
+
+This environment uses Docker Compose to manage the backend, frontend, and database services.
+
+**Prerequisites:**
+*   Docker Desktop installed and running.
+*   Git installed.
+
+**Setup:**
+1.  Clone the repository: `git clone <repository-url>`
+2.  Navigate to the project directory: `cd finmex-suite`
+3.  Ensure `.env.dev` (for backend) and `.env.development` (for frontend) exist with the necessary environment variables (refer to `docker-compose.yml` for required vars). **Do not commit these files.**
+
+**Spin Up:**
+*   Start all services in detached mode:
+    ```bash
+    docker-compose up -d
+    ```
+*   If backend or frontend dependencies (`requirements.txt` or `package.json`) have changed, rebuild the images:
+    ```bash
+    docker-compose up -d --build
+    ```
+
+**Access:**
+*   Frontend: `http://localhost:3000`
+*   Backend API: `http://localhost:8000`
+*   Django Admin: `http://localhost:8000/admin/` (Requires creating a superuser first: `docker-compose exec backend python manage.py createsuperuser`)
+
+**Running Management Commands:**
+*   Use `docker-compose exec` to run commands inside a service container. Example:
+    ```bash
+    # Run Django migrations
+    docker-compose exec backend python manage.py migrate
+
+    # Create Django superuser
+    docker-compose exec backend python manage.py createsuperuser
+
+    # Install a new backend dependency
+    docker-compose exec backend pip install <package-name>
+    # (Remember to add it to requirements.txt and rebuild if needed)
+
+    # Install a new frontend dependency
+    docker-compose exec frontend npm install <package-name>
+    # (Remember to add it to package.json and rebuild if needed)
+    ```
+
+**Take Down:**
+*   Stop and remove containers/networks (data volume persists):
+    ```bash
+    docker-compose down
+    ```
+*   Stop, remove containers/networks, **AND remove data volumes (Deletes DB!)**:
+    ```bash
+    docker-compose down -v
+    ```
+*   Stop containers without removing them:
+    ```bash
+    docker-compose stop
+    ```
+*   Restart stopped containers:
+    ```bash
+    docker-compose start
+    ```
+
+**Viewing Logs:**
+*   View logs for all services: `docker-compose logs`
+*   Follow logs in real-time: `docker-compose logs -f`
+*   View logs for a specific service: `docker-compose logs backend`
+
+### 2. Staging Environment
+
+*(Placeholder: Document infrastructure, deployment steps, environment variable management, and access URLs for the staging environment once defined.)*
+
+**Spin Up:**
+*   `TODO`
+
+**Take Down:**
+*   `TODO`
+
+### 3. Production Environment
+
+*(Placeholder: Document infrastructure, deployment steps (preferably CI/CD), secrets management, and access URLs for the production environment once defined.)*
+
+**Spin Up:**
+*   `TODO`
+
+**Take Down:**
+*   `TODO`
+
 ## Getting Started (Local Development)
 
 1.  **Prerequisites:** Node.js (vX.Y.Z), Docker, Docker Compose, [Any other specific tools like Terraform CLI, AWS CLI].

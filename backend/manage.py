@@ -6,8 +6,8 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    # Use 'cfdi_saas.settings.development' if you want separate settings files later
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cfdi_saas.settings')
+    # Default to local settings if DJANGO_SETTINGS_MODULE is not set
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cfdi_saas.settings.local')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

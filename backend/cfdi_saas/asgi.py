@@ -11,6 +11,7 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cfdi_saas.settings')
+# Default to local settings if DJANGO_SETTINGS_MODULE is not set
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cfdi_saas.settings.local')
 
 application = get_asgi_application()
