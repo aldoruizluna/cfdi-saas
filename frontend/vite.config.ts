@@ -1,3 +1,6 @@
+/// <reference types="vitest" /> 
+/// <reference types="vite/client" />
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -14,5 +17,11 @@ export default defineConfig({
     watch: {
        usePolling: true, // Use polling for file changes in Docker
     }
+  },
+  test: { // Vitest configuration
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.ts', // Setup file for tests
+    css: true, // Enable CSS processing if needed for tests
   },
 }); 

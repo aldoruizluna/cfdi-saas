@@ -4,13 +4,16 @@ import { LocalAuthGuard } from './guards/local-auth.guard'; // We will create th
 import { JwtAuthGuard } from './guards/jwt-auth.guard'; // We will create this
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
-import { CreateUserDto } from '../users/dto/create-user.dto'; // We will create this
+import { RegisterDto } from './dto/register.dto'; // Import new DTO
+import { TenantsService } from '../tenants/tenants.service'; // Import TenantsService
+import { ConflictException } from '@nestjs/common'; // Import exception
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
-    private usersService: UsersService, // Inject UsersService for registration
+    private usersService: UsersService,
+    private tenantsService: TenantsService, // Inject TenantsService
   ) {}
 
   // Use LocalAuthGuard to validate credentials based on LocalStrategy
@@ -21,17 +24,38 @@ export class AuthController {
     return this.authService.login(req.user);
   }
 
-  // Optional: Add a registration endpoint
+  // Updated registration endpoint
   @Post('register')
-  async register(@Body() createUserDto: CreateUserDto) {
-    // Basic registration - consider adding more validation, error handling, etc.
-    const user = await this.usersService.create(createUserDto);
-    // Optionally log the user in immediately after registration
-    // const { password, ...result } = user;
-    // return this.authService.login(result); 
-    // Or just return success/user info (excluding password)
-    const { password, ...result } = user;
-    return result;
+  async register(@Body() registerDto: RegisterDto) { 
+    // Potential improvement: Use a transaction to ensure atomicity
+    try {
+      // 1. Create the Tenant
+      const newTenant = await this.tenantsService.create({ name: registerDto.tenantName });
+      
+      // 2. Prepare User data with the new tenantId
+      const userToCreate = {
+        name: registerDto.name,
+        email: registerDto.email,
+        password: registerDto.password,
+        tenantId: newTenant.id,
+      };
+
+      // 3. Create the User
+      const newUser = await this.usersService.create(userToCreate);
+
+      // Exclude password from the response
+      const { password, ...result } = newUser;
+      return result;
+
+    } catch (error) {
+        // Basic error handling (e.g., duplicate email)
+        if (error?.code === '23505') { // Check for PostgreSQL unique violation code
+             throw new ConflictException('Email already exists');
+        }
+        // TODO: Handle potential tenant creation errors more specifically
+        // TODO: Consider deleting created tenant if user creation fails (or use transaction)
+        throw error; // Re-throw other errors
+    }
   }
 
   // Example of a protected route
