@@ -1,19 +1,26 @@
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage'; // Import the actual page component
 import RegisterPage from './pages/RegisterPage'; // Import the actual page component
 import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute (to be created)
+import { useAuth } from './context/AuthContext'; // Import useAuth
 import './App.css';
 
 // Placeholder Dashboard Page (move to src/pages later if complex)
 function DashboardPage() {
-  // Example usage of useAuth hook
-  // const { user, logout } = useAuth(); 
+  const { user, logout } = useAuth(); // Get user and logout function
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login'); // Redirect to login after logout
+  };
+
   return (
     <div>
       <h1>Dashboard (Protected)</h1>
       {/* Display user info, invoices, etc. */}
-      {/* <p>Welcome, {user?.email}!</p> */} 
-      <button onClick={() => {/* TODO: Implement logout */}}>Logout</button>
+      {user && <p>Welcome, {user.email}! (Tenant: {user.tenantId})</p>} 
+      <button onClick={handleLogout}>Logout</button> {/* Call handleLogout */}
     </div>
   );
 }

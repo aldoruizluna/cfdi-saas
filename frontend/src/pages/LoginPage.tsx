@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 // Basic styling (replace with your actual UI library/CSS)
@@ -17,21 +17,29 @@ function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
-  const apiUrl = import.meta.env.VITE_API_URL; // Get API URL from env
+  const location = useLocation(); // To redirect back after login
+  const apiUrl = import.meta.env.VITE_API_URL;
+
+  // Determine where to redirect after login
+  const from = location.state?.from?.pathname || "/dashboard";
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
+    setIsLoading(true);
 
     if (!apiUrl) {
-        setError('API URL not configured.');
-        return;
+      setError('API URL not configured.');
+      setIsLoading(false);
+      return;
     }
 
     try {
-      const response = await fetch(`${apiUrl}/auth/login`, {
+      // --- Step 1: Login to get token --- 
+      const loginResponse = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -39,28 +47,37 @@ function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      const loginData = await loginResponse.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+      if (!loginResponse.ok) {
+        throw new Error(loginData.message || 'Login failed');
       }
 
-      // Assuming the backend returns { access_token: '...' } on success
-      // We also need user info. Let's assume login returns the token,
-      // and we might need another request to get user details, or the backend
-      // could include basic user info in the login response or token payload.
-      // For now, let's assume login response is { access_token: '...' }
-      // and we extract user info from the decoded token (though not ideal).
-      // A better approach is to fetch user profile after login.
-      
-      // TODO: Decode token to get user info or fetch /auth/profile
-      const fakeUserInfo = { email: email, id: 'temp-id', tenantId: 'temp-tenant' }; // Placeholder!
+      const accessToken = loginData.access_token;
 
-      login(data.access_token, fakeUserInfo);
-      navigate('/dashboard'); // Redirect to dashboard on successful login
+      // --- Step 2: Fetch user profile using the token --- 
+      const profileResponse = await fetch(`${apiUrl}/auth/profile`, {
+          method: 'POST', // Matches the method in AuthController
+          headers: {
+              'Authorization': `Bearer ${accessToken}`,
+          },
+      });
+
+      const profileData = await profileResponse.json();
+
+      if (!profileResponse.ok) {
+          // Handle potential errors fetching profile (e.g., token expired slightly before request)
+          throw new Error(profileData.message || 'Failed to fetch user profile');
+      }
+
+      // --- Step 3: Update Auth Context and Navigate --- 
+      login(accessToken, profileData); // Store token and actual user profile data
+      navigate(from, { replace: true }); // Redirect to intended page or dashboard
 
     } catch (err: any) {
       setError(err.message || 'An error occurred during login.');
+    } finally {
+        setIsLoading(false);
     }
   };
 
@@ -76,6 +93,7 @@ function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            disabled={isLoading}
             style={styles.input}
           />
         </div>
@@ -87,11 +105,14 @@ function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            disabled={isLoading}
             style={styles.input}
           />
         </div>
         {error && <p style={styles.error}>{error}</p>}
-        <button type="submit" style={styles.button}>Login</button>
+        <button type="submit" style={styles.button} disabled={isLoading}>
+          {isLoading ? 'Logging in...' : 'Login'}
+        </button>
       </form>
       <Link to="/register" style={styles.link}>Don't have an account? Register</Link>
     </div>

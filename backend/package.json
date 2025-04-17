@@ -18,7 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "typeorm": "npx ts-node ./node_modules/typeorm/cli.js",
+    "typeorm": "npx cross-env TS_NODE_PROJECT=tsconfig.json ts-node ./node_modules/typeorm/cli.js",
     "db:migration:generate": "npm run typeorm -- -d ./data-source.ts migration:generate ./src/db/migrations/$npm_config_name",
     "db:migration:run": "npm run typeorm -- -d ./data-source.ts migration:run",
     "db:migration:revert": "npm run typeorm -- -d ./data-source.ts migration:revert"
@@ -51,6 +51,7 @@
     "@types/supertest": "^2.0.12",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "cross-env": "^7.0.3",
     "dotenv": "^16.3.1",
     "eslint": "^8.42.0",
     "eslint-config-prettier": "^9.0.0",
