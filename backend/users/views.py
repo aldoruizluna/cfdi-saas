@@ -13,3 +13,5 @@ class UserCreateView(generics.CreateAPIView):
     queryset = User.objects.all() # Required for CreateAPIView, though not strictly used for creation
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny] # Allow anyone to access this endpoint
+
+    # Removed perform_create override
