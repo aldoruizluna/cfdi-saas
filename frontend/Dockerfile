@@ -1,22 +1,32 @@
-# frontend/Dockerfile
-# Use an official Node runtime as a parent image
-FROM node:18-alpine
+# Dockerfile for Vite Frontend
 
-# Set the working directory
+# --- Stage 1: Build --- 
+FROM node:18 AS builder
+
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if available)
+# Copy package files and install dependencies
 COPY package*.json ./
+RUN npm install
 
-# Install dependencies
-# Use --legacy-peer-deps if facing peer dependency issues with CRA/other libs
-RUN npm install --legacy-peer-deps
-
-# Copy the rest of the application code
+# Copy source code and build files
 COPY . .
 
-# Make port 3000 available to the world outside this container
-EXPOSE 3000
+# Build the application
+RUN npm run build
 
-# Define the command to run your app
-CMD ["npm", "start"]
+# --- Stage 2: Serve --- 
+# Use a lightweight nginx image to serve static files
+FROM nginx:stable-alpine 
+
+# Copy built assets from builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy nginx config (optional: if you need custom nginx settings)
+# COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 80 (default nginx port)
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"] 

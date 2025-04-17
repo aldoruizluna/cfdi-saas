@@ -1,7 +1,0 @@
-django>=4.0,<5.0
-djangorestframework>=3.14,<3.15
-psycopg2-binary>=2.9,<3.0 # For PostgreSQL connection
-python-dotenv>=0.20,<1.0 # To read .env files
-requests>=2.28,<3.0 # For making HTTP requests (e.g., to PAC)
-lxml>=4.9,<5.0 # For XML processing (CFDI)
-dj-database-url>=1.0,<2.0 # Add this line for parsing DATABASE_URL

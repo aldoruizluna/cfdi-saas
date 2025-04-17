@@ -10,6 +10,7 @@ This directory contains essential information for understanding, developing, usi
 ## Documentation Areas
 
 *   **`README.md` (This file):** Provides an overview and index of the documentation.
+*   **`ROADMAP.md`:** [`ROADMAP.md`](./ROADMAP.md): Outlines the planned development phases and milestones for the project.
 *   **`SPECIFICATION.md`:** (You should place the original requirements document here) The detailed functional and technical software specification.
 *   **`architecture/`:** Contains high-level architecture diagrams, decisions (ADRs), and descriptions of the system's structure.
     *   [`architecture/README.md`](./architecture/README.md): Overview of architectural documentation.

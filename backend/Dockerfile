@@ -1,24 +1,32 @@
-# backend/Dockerfile
-# Use an official Python runtime as a parent image
-FROM python:3.10-slim
+# Dockerfile for NestJS Backend
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+# --- Stage 1: Build --- 
+FROM node:18 AS builder
 
-# Set work directory
 WORKDIR /app
 
-# Install dependencies
-COPY requirements.txt /app/
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm install
 
-# Copy project
-COPY . /app/
+# Copy source code
+COPY . .
 
-# Expose port 8000 for the Django app
-EXPOSE 8000
+# Build the application
+RUN npm run build
 
-# Specify the command to run on container start (will be overridden by docker-compose)
-# CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# --- Stage 2: Production --- 
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy only necessary files from builder stage
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY package*.json ./
+
+# Expose the port the app runs on (defined in main.ts, default 3000 for NestJS)
+EXPOSE 3000 
+
+# Command to run the application
+CMD [ "node", "dist/main" ] 
