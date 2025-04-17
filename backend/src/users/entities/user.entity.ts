@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Tenant } from '../tenants/entities/tenant.entity'; // Import Tenant entity
+import { Tenant } from '../tenants/entities/tenant.entity'; // Reverted path
 
 @Entity('users') // Specifies the table name
 export class User {
@@ -19,7 +19,7 @@ export class User {
   @Column()
   tenantId: string; // Foreign key column
 
-  @ManyToOne(() => Tenant, (tenant) => tenant.users, { 
+  @ManyToOne(() => Tenant, (tenant: Tenant) => tenant.users, { 
     onDelete: 'CASCADE' // Optional: Delete user if tenant is deleted
   }) 
   @JoinColumn({ name: 'tenantId' }) // Specify the foreign key column name

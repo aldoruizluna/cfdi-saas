@@ -11,7 +11,7 @@ export class Tenant {
 
   // Add other tenant-specific details later (e.g., subscription status, settings)
 
-  @OneToMany(() => User, (user) => user.tenant) // Define the one-to-many relationship
+  @OneToMany(() => User, (user: User) => user.tenant) // Explicitly type user
   users: User[];
 
   @CreateDateColumn()
